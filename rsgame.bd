@@ -1,0 +1,504 @@
+<!-- START OF FILE index.html -->
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RS GAME BD - Play</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #0f172a; color: white; margin: 0; font-family: 'Poppins', sans-serif; overflow-x: hidden; }
+        
+        .glow-text {
+            color: #eab308;
+            text-shadow: 0 0 5px #eab308, 0 0 10px #ca8a04;
+            animation: glow 1.5s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { text-shadow: 0 0 2px #eab308, 0 0 5px #ca8a04; }
+            to { text-shadow: 0 0 10px #eab308, 0 0 20px #facc15; }
+        }
+
+        .game-card { 
+            background: #1e293b; border-radius: 12px; transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); cursor: pointer;
+            border: 1px solid #334155;
+        }
+        .game-card:hover { transform: translateY(-5px); box-shadow: 0 0 15px #eab308; border-color: #eab308; }
+        
+        .input-field { 
+            background: #334155; color: white; border: 1px solid #475569; 
+            width: 100%; padding: 12px; border-radius: 8px; margin-bottom: 12px;
+            outline: none;
+        }
+        .input-field:focus { border-color: #eab308; }
+
+        .search-box {
+            background: #1e293b; border: 1px solid #475569; color: white;
+            width: 100%; padding: 12px 15px; border-radius: 50px;
+            outline: none; transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .search-box:focus { border-color: #eab308; box-shadow: 0 0 10px rgba(234, 179, 8, 0.3); }
+
+        /* Sections */
+        /* শুরুতে সব হাইড থাকবে, JS ডিসিশন নেবে */
+        #login-page { display: none; overflow-y: auto; } 
+        #home-page { display: none; overflow-y: auto; min-height: 100vh; }
+        #game-view { display: none; }
+
+        /* Exit Ad Overlay */
+        #exit-ad-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.95); z-index: 9999;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        .loader { border: 3px solid #334155; border-top: 3px solid #eab308; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <!-- 1. LOGIN & REGISTER PAGE -->
+    <div id="login-page" class="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-[#0f172a] w-full">
+        <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700 w-full max-w-sm">
+            <h1 class="text-3xl font-extrabold glow-text mb-2">RS GAME BD</h1>
+            
+            <!-- LOGIN FORM -->
+            <div id="login-form-section">
+                <p class="text-slate-400 text-sm mb-6">আপনার অ্যাকাউন্ট লগইন করুন</p>
+                <div class="text-left w-full">
+                    <input type="email" id="email-input" placeholder="Email" class="input-field">
+                    <input type="password" id="password-input" placeholder="Password" class="input-field">
+                    <button id="email-login-btn" type="button" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 rounded-lg transition mt-2">লগইন করুন</button>
+                </div>
+                
+                <p class="mt-4 text-sm text-slate-400">
+                    একাউন্ট নেই? <span id="go-to-register" class="text-yellow-500 cursor-pointer font-bold hover:underline">রেজিস্ট্রেশন করুন</span>
+                </p>
+            </div>
+
+            <!-- REGISTRATION FORM (Hidden Initially) -->
+            <div id="register-form-section" class="hidden">
+                <p class="text-slate-400 text-sm mb-6">নতুন অ্যাকাউন্ট তৈরি করুন</p>
+                <div class="text-left w-full">
+                    <input type="email" id="reg-email-input" placeholder="New Email" class="input-field">
+                    <input type="password" id="reg-password-input" placeholder="New Password (Min 6 chars)" class="input-field">
+                    <button id="register-btn" type="button" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition mt-2">রেজিস্ট্রেশন করুন</button>
+                </div>
+
+                <p class="mt-4 text-sm text-slate-400">
+                    আগেই একাউন্ট আছে? <span id="go-to-login" class="text-yellow-500 cursor-pointer font-bold hover:underline">লগইন করুন</span>
+                </p>
+            </div>
+            
+            <div class="flex items-center my-4">
+                <div class="flex-grow h-px bg-slate-600"></div>
+                <span class="px-3 text-slate-500 text-xs">অথবা</span>
+                <div class="flex-grow h-px bg-slate-600"></div>
+            </div>
+
+            <button id="google-login" type="button" class="flex items-center justify-center bg-white hover:bg-gray-100 text-gray-800 px-6 py-3 rounded-lg font-bold w-full transition">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5 mr-3" alt="Google">
+                <span>Login with Google</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. HOME PAGE -->
+    <div id="home-page" class="w-full pb-10">
+        <!-- Header -->
+        <header class="bg-slate-900 p-4 sticky top-0 z-40 border-b border-slate-700 flex justify-between items-center shadow-lg w-full">
+            <h2 class="text-xl font-bold italic glow-text">RS GAME</h2>
+            <div class="flex items-center gap-3">
+                <button id="logout" class="bg-red-500/10 text-red-500 border border-red-500 px-3 py-1 rounded-lg text-sm font-bold">Logout</button>
+            </div>
+        </header>
+
+        <main class="p-4 max-w-6xl mx-auto w-full">
+            <!-- Search Bar -->
+            <div class="mb-6 relative">
+                <input type="text" id="game-search" placeholder="🔍 গেম সার্চ করুন..." class="search-box">
+            </div>
+
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-1 h-6 bg-yellow-500"></div>
+                <h3 class="text-lg font-semibold text-slate-200 glow-text">Online Games</h3>
+            </div>
+            
+            <div id="loading-spinner" class="loader"></div>
+            <div id="status-message" class="text-center text-slate-500 hidden">No games found.</div>
+            
+            <!-- Game Grid -->
+            <div id="game-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 w-full">
+                <!-- Games will render here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- 3. GAME VIEW PAGE (Used for Ad Display) -->
+    <div id="game-view" class="fixed inset-0 bg-[#0f172a] z-50 flex-col w-full h-full">
+        <!-- Top Navigation -->
+        <div class="bg-slate-900 p-3 flex items-center justify-between shadow-md border-b border-slate-700 z-30 w-full relative">
+            <button onclick="handleBackAction()" class="bg-yellow-500 hover:bg-yellow-400 text-black px-5 py-1.5 rounded-full font-bold text-sm flex items-center gap-1">
+                <span>← Back</span>
+            </button>
+            <span id="playing-game-name" class="text-white font-medium truncate ml-3 max-w-[200px] glow-text">Game Loading...</span>
+            <div class="w-10"></div> 
+        </div>
+
+        <!-- UPDATED Entry Ad Container -->
+        <div id="entry-ad-container" class="w-full h-full absolute inset-0 bg-black z-40 hidden flex-col items-center justify-center p-0">
+            <div class="relative w-full h-full flex items-center justify-center bg-black">
+                
+                <!-- Iframe for Web Ads -->
+                <iframe id="entry-ad-iframe" src="" class="w-full h-full border-none hidden" allow="autoplay"></iframe>
+
+                <!-- Direct Media (Video/Image) -->
+                <div id="direct-media-container" class="w-full h-full max-w-5xl max-h-[85vh] flex items-center justify-center relative hidden">
+                    <img id="entry-ad-image" src="" class="w-full h-full object-contain hidden">
+                    <video id="entry-ad-video" src="" class="w-full h-full object-contain hidden" playsinline></video>
+                </div>
+
+                <!-- Smartlink Interaction Container -->
+                <div id="smartlink-container" class="w-full h-full flex flex-col items-center justify-center hidden z-50 px-6">
+                    <p class="text-yellow-400 text-lg mb-6 text-center font-bold">গেমটি চালু করতে নিচের বাটনে ক্লিক করুন 👇</p>
+                    <button id="smartlink-btn" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-10 rounded-full text-xl shadow-[0_0_20px_rgba(37,99,235,0.5)] border-2 border-blue-400 transform transition hover:scale-105 flex items-center gap-2">
+                        🚀 Click to Unlock Game
+                    </button>
+                </div>
+
+                <!-- Timer & Play Button Overlay -->
+                <div class="absolute bottom-10 left-0 right-0 flex flex-col items-center justify-center z-50 px-4">
+                    <p id="entry-ad-timer" class="text-yellow-400 text-xl font-bold mb-4 bg-black/60 px-4 py-2 rounded-full border border-yellow-500/50 hidden">অপেক্ষা করুন...</p>
+                    
+                    <!-- Modified Button for "Skip Video" -->
+                    <button id="entry-skip-btn" class="w-full max-w-xs bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-full text-lg shadow-2xl hidden transform transition hover:scale-105 border-2 border-green-400">
+                        Skip Video ▶
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex-grow w-full h-full bg-black hidden"></div>
+    </div>
+
+    <!-- 4. EXIT AD OVERLAY -->
+    <div id="exit-ad-overlay">
+        <div class="bg-slate-800 p-6 rounded-2xl max-w-sm w-full mx-4 text-center border border-slate-600 relative">
+            <div class="absolute top-2 right-2">
+                <button onclick="closeExitAd()" class="text-slate-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <h3 class="text-xl font-bold text-yellow-500 mb-4 glow-text">SPONSORED</h3>
+            <div class="bg-black w-full h-64 rounded-lg flex items-center justify-center border border-slate-700 mb-4 overflow-hidden">
+                <img id="exit-ad-image-display" src="" class="w-full h-full object-contain">
+                <p id="no-ad-text" class="absolute text-xs text-slate-500 hidden">No Ad Available</p>
+            </div>
+            <button onclick="closeExitAd()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg transition">Close</button>
+        </div>
+    </div>
+
+  <!-- Firebase Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        // Added createUserWithEmailAndPassword for registration
+        import { getAuth, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDJyPU2unY1ritu_GKKIbyWUdMGLn0E208",
+            authDomain: "md-abdur-90128.firebaseapp.com",
+            databaseURL: "https://md-abdur-90128-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "md-abdur-90128",
+            messagingSenderId: "569558327881",
+            appId: "1:569558327881:web:c4f78129bb99bcd5ad5598"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let adData = { urls: [], timer: 5 };
+        let allGamesData = [];
+
+        onValue(ref(db, 'AdSettings'), (snapshot) => {
+            if(snapshot.exists()) {
+                const data = snapshot.val();
+                if (data.adUrls && Array.isArray(data.adUrls)) {
+                    adData.urls = data.adUrls;
+                } else if (data.adUrl) {
+                    adData.urls = [data.adUrl]; 
+                } else {
+                    adData.urls = [];
+                }
+                adData.timer = data.timer || 5;
+            } else {
+                adData.urls = [];
+            }
+        });
+
+        // --- TOGGLE LOGIN / REGISTER UI ---
+        const loginSection = document.getElementById('login-form-section');
+        const registerSection = document.getElementById('register-form-section');
+        
+        document.getElementById('go-to-register').addEventListener('click', () => {
+            loginSection.classList.add('hidden');
+            registerSection.classList.remove('hidden');
+        });
+
+        document.getElementById('go-to-login').addEventListener('click', () => {
+            registerSection.classList.add('hidden');
+            loginSection.classList.remove('hidden');
+        });
+
+        // --- AUTHENTICATION LOGIC ---
+        const loginPage = document.getElementById('login-page');
+        const homePage = document.getElementById('home-page');
+        
+        window.addEventListener('popstate', (event) => {
+            if (document.getElementById('game-view').style.display === 'flex') {
+                closeGameView();
+            }
+        });
+
+        document.getElementById('google-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            signInWithPopup(auth, new GoogleAuthProvider()).catch(err => alert(err.message));
+        });
+
+        // Login Logic
+        document.getElementById('email-login-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email-input').value;
+            const pass = document.getElementById('password-input').value;
+            if(email && pass) {
+                signInWithEmailAndPassword(auth, email, pass).catch(err => alert(err.message));
+            } else {
+                alert("Please enter email and password");
+            }
+        });
+
+        // Registration Logic (New)
+        document.getElementById('register-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('reg-email-input').value;
+            const pass = document.getElementById('reg-password-input').value;
+            if(email && pass) {
+                createUserWithEmailAndPassword(auth, email, pass)
+                    .then((userCredential) => {
+                        alert("Registration Successful!");
+                        // Auto logged in by Firebase, listener will handle page switch
+                    })
+                    .catch((error) => {
+                        alert(error.message);
+                    });
+            } else {
+                alert("Please fill in email and password");
+            }
+        });
+
+        document.getElementById('logout').addEventListener('click', () => signOut(auth));
+
+        // Auto Login / Persistence Logic
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is logged in
+                loginPage.style.display = 'none';
+                homePage.style.display = 'block';
+                history.replaceState({page: 'home'}, "Home", "#home");
+                loadGames();
+            } else {
+                // User is logged out
+                loginPage.style.display = 'flex';
+                homePage.style.display = 'none';
+                document.getElementById('game-view').style.display = 'none';
+            }
+        });
+
+        // --- GAME LOADING LOGIC ---
+        function loadGames() {
+            const list = document.getElementById('game-list');
+            const spinner = document.getElementById('loading-spinner');
+            const msg = document.getElementById('status-message');
+
+            onValue(ref(db, 'Games'), (snapshot) => {
+                allGamesData = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach((child) => {
+                        const game = child.val();
+                        if(game.gameLink && game.gameName) {
+                            allGamesData.push(game);
+                        }
+                    });
+                    renderGames(allGamesData);
+                    spinner.style.display = "none";
+                    msg.style.display = "none";
+                } else {
+                    list.innerHTML = "";
+                    spinner.style.display = "none";
+                    msg.style.display = "block";
+                }
+            });
+        }
+
+        function renderGames(games) {
+            const list = document.getElementById('game-list');
+            list.innerHTML = "";
+            
+            games.forEach(game => {
+                const div = document.createElement('div');
+                div.className = "game-card p-2 flex flex-col";
+                div.innerHTML = `
+                    <div class="overflow-hidden rounded-lg mb-2 h-32 bg-slate-700 relative">
+                        <img src="${game.gameImage}" class="w-full h-full object-cover" loading="lazy">
+                    </div>
+                    <p class="text-center text-sm font-bold truncate text-slate-200 glow-text">${game.gameName}</p>
+                `;
+                div.addEventListener('click', () => {
+                    prepareGame(game.gameLink, game.gameName);
+                });
+                list.appendChild(div);
+            });
+        }
+
+        document.getElementById('game-search').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredGames = allGamesData.filter(game => 
+                game.gameName.toLowerCase().includes(searchTerm)
+            );
+            renderGames(filteredGames);
+        });
+
+        // 3. MAIN GAME & AD LOGIC (UPDATED WITH SKIP VIDEO BUTTON)
+        window.prepareGame = (gameUrl, gameName) => {
+            if(!gameUrl) { alert("গেম লিংক পাওয়া যায়নি!"); return; }
+
+            const gameView = document.getElementById('game-view');
+            const homePage = document.getElementById('home-page');
+            const title = document.getElementById('playing-game-name');
+            
+            const entryAdContainer = document.getElementById('entry-ad-container');
+            const mediaContainer = document.getElementById('direct-media-container');
+            const smartlinkContainer = document.getElementById('smartlink-container');
+            const smartlinkBtn = document.getElementById('smartlink-btn');
+            
+            const entryImg = document.getElementById('entry-ad-image');
+            const entryVideo = document.getElementById('entry-ad-video');
+            const entrySkipBtn = document.getElementById('entry-skip-btn');
+            const entryTimer = document.getElementById('entry-ad-timer');
+
+            history.pushState({page: 'game'}, "Game View", "#game");
+
+            homePage.style.display = 'none';
+            gameView.style.display = 'flex';
+            title.innerText = gameName;
+
+            // Random Ad Selection
+            let selectedAdUrl = null;
+            if (adData.urls && adData.urls.length > 0) {
+                const randomIndex = Math.floor(Math.random() * adData.urls.length);
+                selectedAdUrl = adData.urls[randomIndex];
+            }
+
+            if(selectedAdUrl) {
+                entryAdContainer.classList.remove('hidden');
+                entryAdContainer.style.display = 'flex';
+                
+                // Reset UI
+                mediaContainer.classList.add('hidden');
+                smartlinkContainer.classList.add('hidden');
+                entrySkipBtn.classList.add('hidden');
+                entrySkipBtn.style.display = 'none';
+                entryTimer.style.display = 'none';
+
+                const isVideo = selectedAdUrl.toLowerCase().match(/\.(mp4|webm|mov|mkv)$/i) || selectedAdUrl.includes("firebasestorage");
+                const isImage = selectedAdUrl.toLowerCase().match(/\.(jpg|jpeg|png|gif)$/i);
+                
+                if (isVideo || isImage) {
+                    // --- VIDEO / IMAGE AD LOGIC ---
+                    mediaContainer.classList.remove('hidden');
+                    
+                    entryVideo.classList.add('hidden');
+                    entryImg.classList.add('hidden');
+                    entryVideo.pause();
+
+                    if (isVideo) {
+                        entryVideo.src = selectedAdUrl;
+                        entryVideo.classList.remove('hidden');
+                        entryVideo.play().catch(e => console.log("Auto-play prevented", e));
+                    } else {
+                        entryImg.src = selectedAdUrl;
+                        entryImg.classList.remove('hidden');
+                    }
+
+                    // Timer Logic
+                    let timeLeft = adData.timer || 5;
+                    entryTimer.style.display = 'block';
+                    entryTimer.innerText = `অপেক্ষা করুন: ${timeLeft}s`;
+
+                    const interval = setInterval(() => {
+                        timeLeft--;
+                        entryTimer.innerText = `অপেক্ষা করুন: ${timeLeft}s`;
+                        
+                        if(timeLeft <= 0) {
+                            clearInterval(interval);
+                            entryTimer.style.display = 'none'; // টাইমার লুকাও
+                            entrySkipBtn.innerText = "Skip Video ▶"; // টেক্সট সেট
+                            entrySkipBtn.classList.remove('hidden'); // বাটন দেখাও
+                            entrySkipBtn.style.display = 'block';
+                        }
+                    }, 1000);
+
+                    // Skip Video Action
+                    entrySkipBtn.onclick = () => {
+                        entryVideo.pause();
+                        entryAdContainer.style.display = 'none';
+                        // Open Game in new tab
+                        window.open(gameUrl, '_blank');
+                        // And go back to home (optional, or stay on game view)
+                        history.back();
+                    };
+
+                } else {
+                    // --- SMARTLINK LOGIC ---
+                    smartlinkContainer.classList.remove('hidden');
+                    smartlinkContainer.style.display = 'flex';
+                    
+                    smartlinkBtn.onclick = () => {
+                        window.open(selectedAdUrl, '_blank');
+                        smartlinkContainer.style.display = 'none';
+                        
+                        entrySkipBtn.innerText = "Play Game ▶";
+                        entrySkipBtn.classList.remove('hidden');
+                        entrySkipBtn.style.display = 'block';
+                    };
+
+                    entrySkipBtn.onclick = () => {
+                        entryAdContainer.style.display = 'none';
+                        history.back();
+                        window.open(gameUrl, '_blank');
+                    };
+                }
+
+            } else {
+                history.back();
+                window.open(gameUrl, '_blank');
+            }
+        };
+
+        window.handleBackAction = () => {
+             history.back(); 
+        };
+
+        window.closeGameView = () => {
+            const entryVideo = document.getElementById('entry-ad-video');
+            entryVideo.pause();
+            document.getElementById('game-view').style.display = 'none';
+            document.getElementById('home-page').style.display = 'block';
+        };
+
+    </script>
+</body>
+</html>
